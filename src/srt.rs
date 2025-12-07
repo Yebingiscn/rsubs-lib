@@ -11,7 +11,7 @@ use std::str;
 use time::format_description::BorrowedFormatItem;
 use time::macros::format_description;
 
-use crate::error;
+use crate::{error, strip_bom};
 use time::Time;
 
 use super::ssa::SSA;
@@ -54,7 +54,7 @@ impl SRT {
         let mut line_num = 0;
 
         let mut blocks = vec![vec![]];
-        for line in content.as_ref().lines() {
+        for line in strip_bom(&content).lines() {
             if line.trim().is_empty() {
                 if !blocks.last().unwrap().is_empty() {
                     blocks.push(vec![])

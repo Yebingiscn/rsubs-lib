@@ -5,8 +5,8 @@
 
 use super::srt::{SRTLine, SRT};
 use super::ssa::{SSAEvent, SSAInfo, SSAStyle, SSA};
-use crate::error;
 use crate::util::{Alignment, Color};
+use crate::{error, strip_bom};
 use regex::Regex;
 use serde::Deserialize;
 use serde::Serialize;
@@ -72,7 +72,7 @@ impl VTT {
         let mut lines = vec![];
 
         let mut blocks = vec![vec![]];
-        for line in content.as_ref().lines() {
+        for line in strip_bom(&content).lines() {
             if line.trim().is_empty() {
                 if !blocks.last().unwrap().is_empty() {
                     blocks.push(vec![])
@@ -86,6 +86,11 @@ impl VTT {
         }
 
         parse::parse_start(blocks.remove(0).into_iter())
+            .map_err(|e| VTTError::new(e.kind, line_num + e.line))?;
+
+        let mut blocks = blocks.into_iter();
+
+        parse::parse_start(blocks.next().unwrap_or_default().into_iter())
             .map_err(|e| VTTError::new(e.kind, line_num + e.line))?;
 
         line_num += 1;
@@ -355,7 +360,7 @@ mod parse {
     type Result<T> = std::result::Result<T, Error>;
 
     pub(super) fn parse_start<'a, I: Iterator<Item = &'a str>>(mut block_lines: I) -> Result<()> {
-        let line = block_lines.next().unwrap();
+        let line = block_lines.next().unwrap_or_default();
         if !line.starts_with("WEBVTT") {
             return Err(Error {
                 line: 1,
