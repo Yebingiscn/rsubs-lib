@@ -575,7 +575,10 @@ mod parse {
             };
             let line_list: Vec<&str> = line.trim().split(',').collect();
             styles.push(SSAStyle {
-                name: get_line_value(&headers, "Name", &line_list, header_line, i)?.to_string(),
+                name: {
+                    let key = get_name_key(&headers);
+                    get_line_value(&headers, key, &line_list, header_line, i)?.to_string()
+                },
                 fontname: get_line_value(&headers, "Fontname", &line_list, header_line, i)?
                     .to_string(),
                 fontsize: get_line_value(&headers, "Fontsize", &line_list, header_line, i)?
@@ -732,7 +735,10 @@ mod parse {
                     kind: SSAErrorKind::Parse(e.to_string()),
                 })?,
                 style: get_line_value(&headers, "Style", &line_list, header_line, i)?.to_string(),
-                name: get_line_value(&headers, "Name", &line_list, header_line, i)?.to_string(),
+                name: {
+                    let key = get_name_key(&headers);
+                    get_line_value(&headers, key, &line_list, header_line, i)?.to_string()
+                },
                 margin_l: get_line_value(&headers, "MarginL", &line_list, header_line, i)?
                     .parse()
                     .map_err(|e| map_parse_float_err(e, i))?,
@@ -753,6 +759,17 @@ mod parse {
         }
 
         Ok(events)
+    }
+
+    fn get_name_key<'a>(headers: &Vec<&str>) -> &'a str {
+        if headers
+            .iter()
+            .any(|h| h.trim().eq_ignore_ascii_case("Name"))
+        {
+            "Name"
+        } else {
+            "Actor"
+        }
     }
 
     pub(super) fn parse_fonts_block<'a, I: Iterator<Item = (usize, &'a str)>>(

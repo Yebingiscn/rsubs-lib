@@ -852,6 +852,30 @@ Dialogue: 0,0:00:00.20,0:00:02.20,Default,,0000,0000,0000,,{\i1}Lorem Ipsum1{\i0
 }
 
 #[test]
+fn ass_test() {
+    let simple = r"[Script Info]
+ScriptType: v4.00+
+Collisions: Normal
+PlayResX: 384
+PlayResY: 288
+Timer: 100.0000
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,方正黑体_GBK,17,&H00ffffff,&H0000ffff,&H00000000,&H00000000,-1,0,0,0,100.00,100.00,0.00,0.00,1,1.00,1.00,2,10,10,9,1
+
+[Events]
+Format: Layer, Start, End, Style, Actor, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:24.29,0:00:25.41,Default,,0000,0000,0000,,‎我能相信你吗 \N{\fnMicrosoft YaHei\fs12}Can I trust you?{\r}
+Dialogue: 0,0:00:27.54,0:00:30.83,Default,,0000,0000,0000,,你当然可以相信我 亲爱的谢蒂尔\N{\fnMicrosoft YaHei\fs12}Of course you can trust me,my dear Kjetil.{\r}
+Dialogue: 0,0:00:30.91,0:00:32.72,Default,,0000,0000,0000,,‎真若如此的话 我也许就可以\N{\fnMicrosoft YaHei\fs12}Because if I can, I might--{\r}
+Dialogue: 0,0:00:32.72,0:00:34.79,Default,,0000,0000,0000,,‎从当下这种心境中摆脱出来了\N{\fnMicrosoft YaHei\fs12}I might get out of this place{\r}
+Dialogue: 0,0:00:34.87,0:00:36.75,Default,,0000,0000,0000,,‎当下这种一直愤怒的心境\N{\fnMicrosoft YaHei\fs12}where I'm so angry,{\r}";
+    let err = SSA::parse(simple).unwrap_err();
+    assert_eq!(err.to_string(), simple)
+}
+
+#[test]
 fn events_missing_field() {
     let ssa = r#"[Script Info]
 
