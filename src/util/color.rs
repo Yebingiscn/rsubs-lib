@@ -44,20 +44,45 @@ impl Color {
         Self { r, g, b, a }
     }
 
-    pub(crate) fn from_ssa(mut color: &str) -> Result<Option<Self>, String> {
-        if !color.starts_with("&H") || color.len() != 10 {
+    pub(crate) fn from_ssa(color: &str) -> Result<Option<Self>, String> {
+        let color = color.trim();
+
+        if !color.starts_with("&H") {
             if color.is_empty() {
                 return Ok(None);
             }
-            return Err(format!("invalid color: #{color}"));
+            return Err(format!("invalid color: {color}")); // 移除错误的 # 前缀
         }
-        color = &color[2..];
-        Ok(Some(Self {
-            r: u8::from_str_radix(&color[6..8], 16).map_err(|e| e.to_string())?,
-            g: u8::from_str_radix(&color[4..6], 16).map_err(|e| e.to_string())?,
-            b: u8::from_str_radix(&color[2..4], 16).map_err(|e| e.to_string())?,
-            a: u8::from_str_radix(&color[0..2], 16).map_err(|e| e.to_string())?,
-        }))
+
+        let hex_part = &color[2..]; // 去掉 &H 前缀
+
+        match hex_part.len() {
+            6 => {
+                // 不带Alpha的6位格式: &HBBGGRR
+                Ok(Some(Self {
+                    r: u8::from_str_radix(&hex_part[4..6], 16).map_err(|e| e.to_string())?, // RR
+                    g: u8::from_str_radix(&hex_part[2..4], 16).map_err(|e| e.to_string())?, // GG
+                    b: u8::from_str_radix(&hex_part[0..2], 16).map_err(|e| e.to_string())?, // BB
+                    a: 255, // 不透明
+                }))
+            }
+            8 => {
+                // 带Alpha的8位格式: &HAABBGGRR
+                Ok(Some(Self {
+                    r: u8::from_str_radix(&hex_part[6..8], 16).map_err(|e| e.to_string())?, // RR
+                    g: u8::from_str_radix(&hex_part[4..6], 16).map_err(|e| e.to_string())?, // GG
+                    b: u8::from_str_radix(&hex_part[2..4], 16).map_err(|e| e.to_string())?, // BB
+                    a: u8::from_str_radix(&hex_part[0..2], 16).map_err(|e| e.to_string())?, // AA
+                }))
+            }
+            _ => {
+                if color.is_empty() {
+                    Ok(None)
+                } else {
+                    Err(format!("invalid color length: {color}"))
+                }
+            }
+        }
     }
 
     pub(crate) fn from_vtt(color: &str) -> Result<Self, String> {
