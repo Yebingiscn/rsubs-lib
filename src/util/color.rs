@@ -57,31 +57,26 @@ impl Color {
         let hex_part = &color[2..]; // 去掉 &H 前缀
 
         match hex_part.len() {
-            6 => {
-                // 不带Alpha的6位格式: &HBBGGRR
-                Ok(Some(Self {
-                    r: u8::from_str_radix(&hex_part[4..6], 16).map_err(|e| e.to_string())?, // RR
-                    g: u8::from_str_radix(&hex_part[2..4], 16).map_err(|e| e.to_string())?, // GG
-                    b: u8::from_str_radix(&hex_part[0..2], 16).map_err(|e| e.to_string())?, // BB
-                    a: 255, // 不透明
-                }))
-            }
-            8 => {
-                // 带Alpha的8位格式: &HAABBGGRR
-                Ok(Some(Self {
-                    r: u8::from_str_radix(&hex_part[6..8], 16).map_err(|e| e.to_string())?, // RR
-                    g: u8::from_str_radix(&hex_part[4..6], 16).map_err(|e| e.to_string())?, // GG
-                    b: u8::from_str_radix(&hex_part[2..4], 16).map_err(|e| e.to_string())?, // BB
-                    a: u8::from_str_radix(&hex_part[0..2], 16).map_err(|e| e.to_string())?, // AA
-                }))
-            }
-            _ => {
+            0 => {
                 if color.is_empty() {
                     Ok(None)
                 } else {
                     Err(format!("invalid color length: {color}"))
                 }
             }
+            1..=8 => {
+                // 处理简写格式：将简写的十六进制字符串补全为8位
+                let padded = format!("{:0>8}", hex_part); // 右对齐，左侧补0到8位
+
+                // 解析补全后的8位格式: &HAABBGGRR
+                Ok(Some(Self {
+                    r: u8::from_str_radix(&padded[6..8], 16).map_err(|e| e.to_string())?, // RR
+                    g: u8::from_str_radix(&padded[4..6], 16).map_err(|e| e.to_string())?, // GG
+                    b: u8::from_str_radix(&padded[2..4], 16).map_err(|e| e.to_string())?, // BB
+                    a: u8::from_str_radix(&padded[0..2], 16).map_err(|e| e.to_string())?, // AA
+                }))
+            }
+            _ => Err(format!("invalid color length: {color}")),
         }
     }
 
