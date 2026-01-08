@@ -19,4 +19,4 @@ time = { version = "0.3.44", features = ["formatting", "macros", "parsing", "ser
 serde = { version = "1.0.228", features = ["derive"] }
 
 [dev-dependencies]
-serde_json = "1.0.145"
+serde_json = "1.0.149"
